@@ -6,12 +6,15 @@
 
 import React, { Component } from 'react';
 import {
+  NativeModules,
   Platform,
   StyleSheet,
   Text,
   View
 } from 'react-native';
 import Camera from 'react-native-camera';
+import ImageResizer from 'react-native-image-resizer';
+import Spinner from 'react-native-spinkit';
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' +
@@ -21,6 +24,7 @@ const instructions = Platform.select({
 });
 
 export default class App extends Component<{}> {
+
   render() {
     return (
       <View style={styles.container}>
@@ -35,13 +39,65 @@ export default class App extends Component<{}> {
       </View>
     );
   }
+
+  // Source: https://github.com/dividezero/whattheheckisthis
   takePicture() {
     const options = {};
     //options.location = ...
     this.camera.capture({metadata: options})
-      .then((data) => console.log(data))
+      .then((data) => {
+
+        // TODO: Resizing image was causing a lot of issues; figure out why?
+         // resizeImage(data.path, (resizedImageUri) => {
+          NativeModules.RNImageToBase64.getBase64String(data.path, async(err, base64) => {
+            if (err) {
+              console.error(err)
+            }
+            console.log('Converted to base64');
+
+            let result = await checkForLabels(base64);
+            console.log(result);
+          })
+        // })
+      })
       .catch(err => console.error(err));
   }
+}
+
+function resizeImage(path, callback, width = 640, height = 480) {
+    ImageResizer.createResizedImage(path, width, height, 'JPEG', 80).then((resizedImageUri) => {
+        callback(resizedImageUri);
+
+    }).catch((err) => {
+        console.error(err)
+    });
+}
+
+async function checkForLabels(base64) {
+
+    return await
+        fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyBp8agW3SChKRVtmAWSUSxdqRgdxzmigxs', {
+            method: 'POST',
+            body: JSON.stringify({
+                "requests": [
+                    {
+                        "image": {
+                            "content": base64
+                        },
+                        "features": [
+                            {
+                                "type": "LABEL_DETECTION"
+                            }
+                        ]
+                    }
+                ]
+            })
+        }).then((response) => {
+            return response.json();
+        }, (err) => {
+            console.error('promise rejected')
+            console.error(err)
+        });
 }
 
 const styles = StyleSheet.create({
