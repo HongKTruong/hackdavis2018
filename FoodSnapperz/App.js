@@ -74,7 +74,7 @@ export default class App extends Component<{}> {
             let filteredResult = filterLabelsList(result.responses[0], 0.5);
 
             // Display every filtered result in an alert
-            //displayResult(filteredResult);
+            displayResult(filteredResult);
           })
         // })
       })
@@ -118,9 +118,25 @@ function filterLabelsList(response, minConfidence = 0) {
     nutrition.forEach((food) => {
        // response.labelAnnotations.forEach(label) => {
          console.log("ASBDKBDKSABKBDSA" + food.name)
-         response.forEach((label) => {
-          console.log("MMMMMMMMMMMMMMMMMM" + label.description)
-         });
+         response.labelAnnotations.forEach((label) => {
+          // console.log("MMMMMMMMMMMMMMMMMM" + food.name)
+          if (food.name === label.description) {
+            // console.log("I FOUND A MATCH!!!!!!!!!!")
+            resultArr.push(label.description)
+            return resultArr;
+          }
+        });
+
+        response.webDetection.webEntities.forEach((label) => {
+          // console.log("KKKKKKKKK" + food.name)
+          if (food.name === label.description) {
+            // console.log("MATCH FOUND IN HELL")
+            resultArr.push(label.description)
+            return resultArr;
+          }
+        });
+
+
     //     if (nutrition[i].name === label.description) {
     //       console.log("NAME: " + nutrition[i].name + "DESC: " + label.description);
     //       resultArr.push(label.description);
@@ -145,14 +161,13 @@ function filterLabelsList(response, minConfidence = 0) {
 function displayResult(filteredResult) {
 
   let labelString = '';
-  let count = 1;
 
-  // console.log("THIS HAS" + filteredResult.length + "RESULTS SSSSSSSSSSSSSSSS");
-
-  filteredResult.forEach((label) => {
-    labelString += label + ' ,';
-    console.log(label);
-  });
+  if (filteredResult.length == 0) {
+    labelString += "No matches"
+  }
+  else {
+    labelString += filteredResult[0];
+  }
 
   Alert.alert(
     labelString
