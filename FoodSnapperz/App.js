@@ -88,7 +88,6 @@ function resizeImage(path, callback, width = 640, height = 480) {
 }
 
 async function checkForLabels(base64) {
-  console.log('PLEASE GIVE ME JSONS');
     return await
         fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyBIfaUsi0tnYkY4sc7SpS0-BduLIP1Nms8', {
             method: 'POST',
@@ -101,6 +100,10 @@ async function checkForLabels(base64) {
                         "features": [
                             {
                                 "type": "LABEL_DETECTION",
+                                "maxResults": 10
+                            },
+                            {
+                                "type": "WEB_DETECTION",
                                 "maxResults": 10
                             }
                         ]
@@ -121,6 +124,10 @@ function filterLabelsList(response, minConfidence = 0) {
         if (label.score > minConfidence) {
             resultArr.push(label);
         }
+    });
+
+    response.webDetection.webEntities.forEach((label) => {
+      resultArr.push(label);
     });
     return resultArr;
 }
