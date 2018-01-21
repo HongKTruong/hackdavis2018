@@ -6,11 +6,14 @@
 
 import React, { Component } from 'react';
 import {
+  Alert,
   NativeModules,
   Platform,
   StyleSheet,
   Text,
-  View
+  View,
+  CameraRoll,
+  Image
 } from 'react-native';
 import Camera from 'react-native-camera';
 import ImageResizer from 'react-native-image-resizer';
@@ -33,7 +36,8 @@ export default class App extends Component<{}> {
           this.camera = cam;
         }}
         style={styles.preview}
-        aspect={Camera.constants.Aspect.fill}>
+        aspect={Camera.constants.Aspect.fill}
+        captureQuality={Camera.constants.CaptureQuality.medium}>
         <Text style={styles.capture} onPress={this.takePicture.bind(this)}>[CAPTURE]</Text>
       </Camera>
       </View>
@@ -49,14 +53,24 @@ export default class App extends Component<{}> {
 
         // TODO: Resizing image was causing a lot of issues; figure out why?
          // resizeImage(data.path, (resizedImageUri) => {
+
+          // Google wants a base64-formatted image if the API is not given an uploaded image or URL
+          // NativeModules.RNImageToBase64.getBase64String(resizedImageUri, async(err, base64) => {
           NativeModules.RNImageToBase64.getBase64String(data.path, async(err, base64) => {
             if (err) {
               console.error(err)
             }
             console.log('Converted to base64');
 
+            // Wait for Google to return json labels
             let result = await checkForLabels(base64);
             console.log(result);
+
+            // Remove results with confidence levels lower than 0.3
+            let filteredResult = filterLabelsList(result.responses[0], 0.5);
+
+            // Display every filtered result in an alert
+            displayResult(filteredResult);
           })
         // })
       })
@@ -65,7 +79,7 @@ export default class App extends Component<{}> {
 }
 
 function resizeImage(path, callback, width = 640, height = 480) {
-    ImageResizer.createResizedImage(path, width, height, 'JPEG', 80).then((resizedImageUri) => {
+    ImageResizer.createResizedImage(path, width, height, 'JPEG', 80, 0, path).then((resizedImageUri) => {
         callback(resizedImageUri);
 
     }).catch((err) => {
@@ -74,9 +88,9 @@ function resizeImage(path, callback, width = 640, height = 480) {
 }
 
 async function checkForLabels(base64) {
-
+  console.log('PLEASE GIVE ME JSONS');
     return await
-        fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyBp8agW3SChKRVtmAWSUSxdqRgdxzmigxs', {
+        fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyBIfaUsi0tnYkY4sc7SpS0-BduLIP1Nms8', {
             method: 'POST',
             body: JSON.stringify({
                 "requests": [
@@ -86,7 +100,8 @@ async function checkForLabels(base64) {
                         },
                         "features": [
                             {
-                                "type": "LABEL_DETECTION"
+                                "type": "LABEL_DETECTION",
+                                "maxResults": 10
                             }
                         ]
                     }
@@ -99,6 +114,60 @@ async function checkForLabels(base64) {
             console.error(err)
         });
 }
+
+function filterLabelsList(response, minConfidence = 0) {
+    let resultArr = [];
+    response.labelAnnotations.forEach((label) => {
+        if (label.score > minConfidence) {
+            resultArr.push(label);
+        }
+    });
+    return resultArr;
+}
+
+function displayResult(filteredResult) {
+
+  let labelString = '';
+  let count = 1;
+
+  // console.log("THIS HAS" + filteredResult.length + "RESULTS SSSSSSSSSSSSSSSS");
+
+  filteredResult.forEach((label) => {
+    labelString += label.description + ' ,';
+    console.log(label.description);
+  });
+
+  Alert.alert(
+    labelString
+  );
+}
+
+
+//     let labelString = '';
+//     let count = 1;
+//     if (filteredResult.length > 1) {
+//         labelString = '... or it might be ';
+//         filteredResult.forEach((resLabel) => {
+//             if (count == filteredResult.length) {
+//                 labelString += 'a ' + resLabel.description + '! I\'m pretty sure! Maybe.'
+//             } else if (count == 1) {
+
+//             } else {
+//                 labelString += 'a ' + resLabel.description + ' or '
+//             }
+//             count++;
+//         });
+
+//         Alert.alert(
+//             'Its a ' + filteredResult[0].description + '!',
+//             labelString
+//         );
+//     } else {
+//         Alert.alert(
+//             'Its a ' + filteredResult[0].description + '!'
+//         );
+//     }
+// }
 
 const styles = StyleSheet.create({
   container: {
