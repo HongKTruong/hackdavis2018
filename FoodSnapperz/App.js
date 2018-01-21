@@ -18,6 +18,7 @@ import {
 import Camera from 'react-native-camera';
 import ImageResizer from 'react-native-image-resizer';
 import Spinner from 'react-native-spinkit';
+import nutrition from './nutrition.json';
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' +
@@ -44,8 +45,10 @@ export default class App extends Component<{}> {
     );
   }
 
+  // console.log(nutrition);
   // Source: https://github.com/dividezero/whattheheckisthis
   takePicture() {
+
     const options = {};
     //options.location = ...
     this.camera.capture({metadata: options})
@@ -61,6 +64,7 @@ export default class App extends Component<{}> {
               console.error(err)
             }
             console.log('Converted to base64');
+            console.log(nutrition);
 
             // Wait for Google to return json labels
             let result = await checkForLabels(base64);
@@ -70,21 +74,12 @@ export default class App extends Component<{}> {
             let filteredResult = filterLabelsList(result.responses[0], 0.5);
 
             // Display every filtered result in an alert
-            displayResult(filteredResult);
+            //displayResult(filteredResult);
           })
         // })
       })
       .catch(err => console.error(err));
   }
-}
-
-function resizeImage(path, callback, width = 640, height = 480) {
-    ImageResizer.createResizedImage(path, width, height, 'JPEG', 80, 0, path).then((resizedImageUri) => {
-        callback(resizedImageUri);
-
-    }).catch((err) => {
-        console.error(err)
-    });
 }
 
 async function checkForLabels(base64) {
@@ -120,15 +115,30 @@ async function checkForLabels(base64) {
 
 function filterLabelsList(response, minConfidence = 0) {
     let resultArr = [];
-    response.labelAnnotations.forEach((label) => {
-        if (label.score > minConfidence) {
-            resultArr.push(label);
-        }
-    });
+    nutrition.forEach((food) => {
+       // response.labelAnnotations.forEach(label) => {
+         console.log("ASBDKBDKSABKBDSA" + food.name)
+         response.forEach((label) => {
+          console.log("MMMMMMMMMMMMMMMMMM" + label.description)
+         });
+    //     if (nutrition[i].name === label.description) {
+    //       console.log("NAME: " + nutrition[i].name + "DESC: " + label.description);
+    //       resultArr.push(label.description);
+    //     }
+  
+       
+     });
 
-    response.webDetection.webEntities.forEach((label) => {
-      resultArr.push(label);
-    });
+
+    // response.labelAnnotations.forEach((label) => {
+    //     if (label.score > minConfidence) {
+    //         resultArr.push(label);
+    //     }
+    // });
+
+    // response.webDetection.webEntities.forEach((label) => {
+    //   resultArr.push(label);
+    // });
     return resultArr;
 }
 
@@ -140,8 +150,8 @@ function displayResult(filteredResult) {
   // console.log("THIS HAS" + filteredResult.length + "RESULTS SSSSSSSSSSSSSSSS");
 
   filteredResult.forEach((label) => {
-    labelString += label.description + ' ,';
-    console.log(label.description);
+    labelString += label + ' ,';
+    console.log(label);
   });
 
   Alert.alert(

@@ -1,0 +1,42 @@
+[
+    {
+        "name": "Goldfish",
+        "serving size": "28 g",
+        "calories": "130",
+        "fat": "4.5",
+        "carbs": "19",
+        "protein": "3"
+    },
+    {
+        "name": "red bull",
+        "serving size": "250 mL",
+        "calories": "110",
+        "fat": "0",
+        "carbs": "28",
+        "protein": "0"
+    },
+    {
+        "name": "Hershey bar",
+        "serving size": "43 g",
+        "calories": "220",
+        "fat": "13",
+        "carbs": "26",
+        "protein": "3"
+    },
+    {
+        "name": "Lay's",
+        "serving size": "28 g",
+        "calories": "160",
+        "fat": "10",
+        "carbs": "15",
+        "protein": "2"
+    },
+    {
+        "name": "Famous Amos",
+        "serving size": "56 g",
+        "calories": "280",
+        "fat": "13",
+        "carbs": "38",
+        "protein": "2"
+    }
+]
