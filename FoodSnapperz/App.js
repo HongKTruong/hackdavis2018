@@ -54,17 +54,13 @@ export default class App extends Component<{}> {
     this.camera.capture({metadata: options})
       .then((data) => {
 
-        // TODO: Resizing image was causing a lot of issues; figure out why?
-         // resizeImage(data.path, (resizedImageUri) => {
-
           // Google wants a base64-formatted image if the API is not given an uploaded image or URL
-          // NativeModules.RNImageToBase64.getBase64String(resizedImageUri, async(err, base64) => {
           NativeModules.RNImageToBase64.getBase64String(data.path, async(err, base64) => {
             if (err) {
               console.error(err)
             }
             console.log('Converted to base64');
-            console.log(nutrition);
+            // console.log(nutrition);
 
             // Wait for Google to return json labels
             let result = await checkForLabels(base64);
@@ -116,45 +112,21 @@ async function checkForLabels(base64) {
 function filterLabelsList(response, minConfidence = 0) {
     let resultArr = [];
     nutrition.forEach((food) => {
-       // response.labelAnnotations.forEach(label) => {
-         console.log("ASBDKBDKSABKBDSA" + food.name)
          response.labelAnnotations.forEach((label) => {
-          // console.log("MMMMMMMMMMMMMMMMMM" + food.name)
           if (food.name === label.description) {
-            // console.log("I FOUND A MATCH!!!!!!!!!!")
             resultArr.push(label.description)
             return resultArr;
           }
         });
 
         response.webDetection.webEntities.forEach((label) => {
-          // console.log("KKKKKKKKK" + food.name)
           if (food.name === label.description) {
-            // console.log("MATCH FOUND IN HELL")
             resultArr.push(label.description)
             return resultArr;
           }
         });
-
-
-    //     if (nutrition[i].name === label.description) {
-    //       console.log("NAME: " + nutrition[i].name + "DESC: " + label.description);
-    //       resultArr.push(label.description);
-    //     }
-  
-       
      });
 
-
-    // response.labelAnnotations.forEach((label) => {
-    //     if (label.score > minConfidence) {
-    //         resultArr.push(label);
-    //     }
-    // });
-
-    // response.webDetection.webEntities.forEach((label) => {
-    //   resultArr.push(label);
-    // });
     return resultArr;
 }
 
@@ -173,33 +145,6 @@ function displayResult(filteredResult) {
     labelString
   );
 }
-
-
-//     let labelString = '';
-//     let count = 1;
-//     if (filteredResult.length > 1) {
-//         labelString = '... or it might be ';
-//         filteredResult.forEach((resLabel) => {
-//             if (count == filteredResult.length) {
-//                 labelString += 'a ' + resLabel.description + '! I\'m pretty sure! Maybe.'
-//             } else if (count == 1) {
-
-//             } else {
-//                 labelString += 'a ' + resLabel.description + ' or '
-//             }
-//             count++;
-//         });
-
-//         Alert.alert(
-//             'Its a ' + filteredResult[0].description + '!',
-//             labelString
-//         );
-//     } else {
-//         Alert.alert(
-//             'Its a ' + filteredResult[0].description + '!'
-//         );
-//     }
-// }
 
 const styles = StyleSheet.create({
   container: {
