@@ -13,12 +13,15 @@ import {
   Text,
   View,
   CameraRoll,
-  Image
+  Image,
+  PixelRatio,
+  TouchableOpacity,
 } from 'react-native';
 import Camera from 'react-native-camera';
 import ImageResizer from 'react-native-image-resizer';
 import Spinner from 'react-native-spinkit';
 import nutrition from './nutrition.json';
+import ImagePicker from 'react-native-image-picker';
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' +
@@ -27,7 +30,45 @@ const instructions = Platform.select({
     'Shake or press menu button for dev menu',
 });
 
-export default class App extends Component<{}> {
+export default class App extends Component{}> {
+  state = { ImageSource: null,};
+
+  selectPhotoTapped() {
+  const options = {
+    quality: 1.0,
+    maxWidth: 10,
+    maxHeight: 10,
+    storageOptions: {
+      skipBackup: true
+    }
+  };
+
+  ImagePicker.showImagePicker(options, async(response) => {
+        console.log('Response = ', response);
+        if (response.didCancel) {
+          console.log('User cancelled photo picker')
+        }
+        else if (response.error) {
+          console.log('ImagePicker Error: ', response.error)
+        }
+        else if (response.customButton) {
+          console.log('User tapped custom button: ', response.customButton)
+        }
+        else {
+            //Wait for Google to return json labels
+            let result = await checkForLabels(response.data)
+            console.log("POOP" + result)
+
+            //Remove results with confidence levels lower than 0.3
+            let filteredResult = filterLabelsList(result.responses[0], 0.5);
+
+            //Display every filtered result in an alert
+            displayResult(filteredResult);
+        }
+    });
+  }
+
+
 
   render() {
     return (
@@ -39,8 +80,19 @@ export default class App extends Component<{}> {
         style={styles.preview}
         aspect={Camera.constants.Aspect.fill}
         captureQuality={Camera.constants.CaptureQuality.medium}>
+        <TouchableOpacity onPress={this.selectPhotoTapped.bind(this)}>
+
+        <View style={styles.ImageContainer}>
+
+        { this.state.ImageSource === null ? <Text>Upload</Text> :
+          <Image style={styles.ImageContainer} source={this.state.ImageSource} />
+        }
+
+        </View>
+        </TouchableOpacity>
         <Text style={styles.capture} onPress={this.takePicture.bind(this)}>[CAPTURE]</Text>
       </Camera>
+
       </View>
     );
   }
@@ -60,7 +112,6 @@ export default class App extends Component<{}> {
               console.error(err)
             }
             console.log('Converted to base64');
-            // console.log(nutrition);
 
             // Wait for Google to return json labels
             let result = await checkForLabels(base64);
@@ -72,7 +123,6 @@ export default class App extends Component<{}> {
             // Display every filtered result in an alert
             displayResult(filteredResult);
           })
-        // })
       })
       .catch(err => console.error(err));
   }
@@ -126,6 +176,7 @@ function filterLabelsList(response, minConfidence = 0) {
           }
         });
      });
+    console.log("LALALALLAALALA" + resultArr)
 
     return resultArr;
 }
@@ -150,6 +201,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'row',
+  },
+  ImageContainer: {
+  borderRadius: 10,
+  width: 50,
+  height: 50,
+  borderColor: '#9B9B9B',
+  borderWidth: 1 / PixelRatio.get(),
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: '#CDDC39',
+
   },
   instructions: {
     textAlign: 'center',
